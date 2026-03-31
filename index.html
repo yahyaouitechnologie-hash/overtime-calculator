@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Overtime Calculator</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    padding: 20px;
+}
+
+.container {
+    max-width: 520px;
+    margin: auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+h2 {
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+label {
+    font-weight: 600;
+    display: block;
+    margin-top: 12px;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    border-radius: 6px;
+    border: 1px solid #dcdcdc;
+    font-size: 14px;
+}
+
+button {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: #2e86de;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1b4f72;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 15px;
+    background: #ecfdf5;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.result strong {
+    font-size: 18px;
+}
+</style>
+</head>
+<body>
+  div class="container">
+    <h2>Overtime Calculator</h2>
+    <label>Month</label>
+<input type="text" id="month" placeholder="e.g. March">
+
+<label>Working Days</label>
+<input type="number" id="days" value="30">
+
+<label>Working Hours per Day</label>
+<input type="number" id="hours" value="8">
+
+<label>Basic Salary (AED)</label>
+<input type="number" id="basic" placeholder="Enter basic salary">
+
+<label>Basic + Allowance (AED)</label>
+<input type="number" id="totalSalary" placeholder="Enter total salary">
+
+<label>Overtime Hours</label>
+<input type="number" id="otHours" placeholder="Enter overtime hours">
+
+<label>Overtime Type</label>
+<select id="type">
+    <option value="normal">Normal Overtime (25%)</option>
+    <option value="holiday">Weekend / Public Holiday (50%)</option>
+</select>
+
+<button onclick="calculate()">Calculate</button>
+
+<div class="result" id="result"></div>
+</div>
+  <script>
+function calculate() {
+
+    let basic = parseFloat(document.getElementById('basic').value) || 0;
+    let totalSalary = parseFloat(document.getElementById('totalSalary').value) || 0;
+    let days = parseFloat(document.getElementById('days').value) || 30;
+    let hours = parseFloat(document.getElementById('hours').value) || 8;
+    let otHours = parseFloat(document.getElementById('otHours').value) || 0;
+    let type = document.getElementById('type').value;
+
+    let result = 0;
+    let breakdown = "";
+
+    if (type === "normal") {
+
+        result = ((1.25 * totalSalary) / (days * hours)) * otHours;
+
+        breakdown = `
+        Formula:<br>
+        ((1.25 × ${totalSalary}) ÷ (${days} × ${hours})) × ${otHours}
+        `;
+
+    } else {
+
+        let baseRate = ((1.0 * totalSalary) / (days * hours)) * otHours;
+        let extraRate = ((0.5 * basic) / (days * hours)) * otHours;
+
+        result = baseRate + extraRate;
+
+        breakdown = `
+        Base Rate:<br>
+        ((100% × ${totalSalary}) ÷ (${days} × ${hours})) × ${otHours}
+        = ${baseRate.toFixed(2)} AED<br><br>
+
+        Additional Rate:<br>
+        ((50% × ${basic}) ÷ (${days} × ${hours})) × ${otHours}
+        = ${extraRate.toFixed(2)} AED
+        `;
+    }
+
+    document.getElementById('result').innerHTML = `
+        <strong>Overtime Pay: AED ${result.toFixed(2)}</strong><br><br>
+        ${breakdown}
+    `;
+}
+</script>
+/body>
+</html>

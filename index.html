@@ -1,27 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Overtime Calculator</title>
-<style>
+<!-- PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
 body {
     font-family: Arial, sans-serif;
     background: #f4f6f9;
     padding: 20px;
 }
 
+.header {
+    background: black;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 20px;
+    border-radius: 8px 8px 0 0;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.logo img {
+    max-width: 120px;
+}
+
 .container {
     max-width: 520px;
     margin: auto;
     background: #ffffff;
-    padding: 25px;
-    border-radius: 10px;
+    padding: 20px;
+    border-radius: 0 0 10px 10px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-h2 {
-    margin-bottom: 20px;
-    font-size: 22px;
 }
 
 label {
@@ -40,10 +55,9 @@ input, select {
 }
 
 button {
-    margin-top: 20px;
+    margin-top: 12px;
     width: 100%;
     padding: 12px;
-    background: #2e86de;
     color: white;
     border: none;
     border-radius: 6px;
@@ -51,9 +65,9 @@ button {
     cursor: pointer;
 }
 
-button:hover {
-    background: #1b4f72;
-}
+.calculate-btn { background: black; }
+.reset-btn { background: #888; }
+.pdf-btn { background: #0a7d3b; }
 
 .result {
     margin-top: 20px;
@@ -62,17 +76,17 @@ button:hover {
     border-radius: 6px;
     font-size: 14px;
 }
-
-.result strong {
-    font-size: 18px;
-}
 </style>
 </head>
 <body>
-  
-    <h2>Overtime Calculator</h2>
+    <div class="logo">
+    <!-- Replace with your logo URL -->
+    <img src="https://www.planetpayment.ae/media/hsybq1mk/logo.png">
+</div>
+<div class="header">Overtime Calculator</div>
+<div class="container">
     <label>Month</label>
-<input type="text" id="month" placeholder="e.g. March">
+<input type="month" id="month" onchange="setDays()">
 
 <label>Working Days</label>
 <input type="number" id="days" value="30">
@@ -81,13 +95,13 @@ button:hover {
 <input type="number" id="hours" value="8">
 
 <label>Basic Salary (AED)</label>
-<input type="number" id="basic" placeholder="Enter basic salary">
+<input type="number" id="basic">
 
 <label>Basic + Allowance (AED)</label>
-<input type="number" id="totalSalary" placeholder="Enter total salary">
+<input type="number" id="totalSalary">
 
 <label>Overtime Hours</label>
-<input type="number" id="otHours" placeholder="Enter overtime hours">
+<input type="number" id="otHours">
 
 <label>Overtime Type</label>
 <select id="type">
@@ -95,11 +109,28 @@ button:hover {
     <option value="holiday">Weekend / Public Holiday (50%)</option>
 </select>
 
-<button onclick="calculate()">Calculate</button>
+<button class="calculate-btn" onclick="calculate()">Calculate</button>
+<button class="reset-btn" onclick="resetForm()">Reset</button>
+<button class="pdf-btn" onclick="downloadPDF()">Export PDF</button>
 
 <div class="result" id="result"></div>
 </div>
-  <script>
+<script>
+
+// AUTO DAYS BASED ON MONTH
+function setDays() {
+    let monthInput = document.getElementById('month').value;
+    if (!monthInput) return;
+
+    let date = new Date(monthInput);
+    let year = date.getFullYear();
+    let month = date.getMonth();
+
+    let days = new Date(year, month + 1, 0).getDate();
+    document.getElementById('days').value = days;
+}
+
+// CALCULATION
 function calculate() {
 
     let basic = parseFloat(document.getElementById('basic').value) || 0;
@@ -110,40 +141,41 @@ function calculate() {
     let type = document.getElementById('type').value;
 
     let result = 0;
-    let breakdown = "";
 
     if (type === "normal") {
-
         result = ((1.25 * totalSalary) / (days * hours)) * otHours;
-
-        breakdown = `
-        Formula:<br>
-        ((1.25 × ${totalSalary}) ÷ (${days} × ${hours})) × ${otHours}
-        `;
-
     } else {
-
         let baseRate = ((1.0 * totalSalary) / (days * hours)) * otHours;
         let extraRate = ((0.5 * basic) / (days * hours)) * otHours;
-
         result = baseRate + extraRate;
-
-        breakdown = `
-        Base Rate:<br>
-        ((100% × ${totalSalary}) ÷ (${days} × ${hours})) × ${otHours}
-        = ${baseRate.toFixed(2)} AED<br><br>
-
-        Additional Rate:<br>
-        ((50% × ${basic}) ÷ (${days} × ${hours})) × ${otHours}
-        = ${extraRate.toFixed(2)} AED
-        `;
     }
 
-    document.getElementById('result').innerHTML = `
-        <strong>Overtime Pay: AED ${result.toFixed(2)}</strong><br><br>
-        ${breakdown}
-    `;
+    document.getElementById('result').innerHTML =
+        "<strong>Overtime Pay: AED " + result.toFixed(2) + "</strong>";
 }
+
+// RESET
+function resetForm() {
+    document.querySelectorAll("input").forEach(i => i.value = "");
+    document.getElementById('days').value = 30;
+    document.getElementById('hours').value = 8;
+    document.getElementById('type').value = "normal";
+    document.getElementById('result').innerHTML = "";
+}
+
+// EXPORT PDF
+function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    let doc = new jsPDF();
+
+    let resultText = document.getElementById('result').innerText;
+
+    doc.text("Overtime Calculation", 20, 20);
+    doc.text(resultText || "No result calculated", 20, 40);
+
+    doc.save("overtime.pdf");
+}
+
 </script>
-/body>
+</body>
 </html>
